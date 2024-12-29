@@ -1,0 +1,82 @@
+Instructions:
+
+* 	Create a conda environment:  conda create --name env_X
+* 	Activate the environment:	conda activate env_X
+*	Please install amazon-science/mm-cot: https://github.com/amazon-science/mm-cot
+*   	Run pip install -r requirements.txt
+
+*	Chnage directory to mm-cot
+
+*   	Add or replace the following file (folder) in mm-cot folder,
+		** timm: https://drive.google.com/drive/folders/1fVV9mmB6f05W7v2ZyoEt8__5Inh5eLja?usp=sharing
+		** vision_features: https://drive.google.com/drive/folders/1fVV9mmB6f05W7v2ZyoEt8__5Inh5eLja?usp=sharing
+		** unit_models: https://drive.google.com/drive/folders/1fVV9mmB6f05W7v2ZyoEt8__5Inh5eLja?usp=sharing
+
+* 	Please put the all the .py files in mm-cot folder.
+* 	Create a folder named, 'results'
+
+
+#
+# 	Training the generl description (Y_gdesc) model:
+#
+
+***	Training file: main_trainSingleCardGeneration.py 
+*** Inference file: pipe_gDescGenerationTest.py
+***	Linked files: util_gDescGeneration.py, model_combinedCardQAGenerationTrain_v1.py
+*** chkp_id = 'checkpoint-3225/'
+*** model_dir = f'./unit_models/VIT_T5Base_train_fullFT_categoryCard_gDescGeneration_v1_category_GENERAL/{chkp_id}'
+*** CARD_PATH: ./trained_cards/card_train_fullFT_categoryCard_gDescGeneration_v1_GENERAL
+	
+	1. Use the following command to start training:
+
+	CUDA_VISIBLE_DEVICES=1 python3 main_trainGDescGeneration.py    --category GENERAL     --output_len 125     --execution_mode train_fullFT_categoryCard_gDescGeneration_v1     --epoch 20    --img_type vit       --user_msg rationale     --lr 5e-5     --use_caption     --use_generate     --prompt_format QCM-E     --output_dir experiments     --final_eval
+
+	2. While in inference, set projector_card to CARD_PATH in model_combinedCardQAGenerationTrain_v1.py
+	3. Use the following command to start inference:
+
+	CUDA_VISIBLE_DEVICES=0 python3 pipe_gDescGenerationTest.py         --execution_mode  test_fullFT_categoryCard_gDescGeneration_v1         --output_len 125         --img_type vit         --user_msg rationale         --epoch 1         --lr 5e-5         --use_caption         --use_generate         --prompt_format QCM-E         --output_dir experiments         --final_eval
+
+
+#
+# 	Training the level 0 classification model:
+#
+
+*** Training file: main_trainBenignOrHateClassification_L0.py 
+*** Inference file: pipe_testBenignOrHateClassification_L0.py
+***	Linked files: util_L0forHateOrBenignDetectionTrain.py, model_singleCard.py
+*** chkp_id = 'checkpoint-12200/'
+*** model_dir = f'./unit_models/VIT_T5Base_partialFT_train_benignOrNOT_partialFT_singleCard_category_GENERAL/{chkp_id}'
+*** CARD_PATH: ./trained_cards/card_train_benignOrNOT_partialFT_singleCard_GENERAL
+
+	1. Use the following command to start training:
+
+	CUDA_VISIBLE_DEVICES=1 python3 main_trainBenignOrHateClassification_L0.py    --category GENERAL     --output_len 10     --execution_mode train_benignOrNOT_partialFT_singleCard    --img_type vit       --user_msg rationale     --epoch 50 --lr 5e-5 --use_caption --use_generate --prompt_format QCM-E     --output_dir experiments     --final_eval
+
+
+	2. While in inference, set projector_card to CARD_PATH in model_singleCard.py
+	3. Use the following command to start inference:
+
+	CUDA_VISIBLE_DEVICES=2 python3 pipe_testBenignOrHateClassification_L0.py         --execution_mode  test_benignOrNOT_partialFT_singleCard         --output_len 10         --img_type vit         --user_msg rationale         --epoch 1         --lr 5e-5         --use_caption         --use_generate         --prompt_format QCM-E         --output_dir experiments         --final_eval
+
+
+
+#
+# 	Training the level 1 classification model:
+#
+
+*** Training file: main_L1forImpOrExpDetectionTrain.py
+*** Inference file: pipe_testL1forImpOrExpDetectionTest.py
+***	Linked files: util_L1forImpOrExpDetectionTrain.py, model_singleCard.py
+*** chkp_id = 'checkpoint-903/'
+*** model_dir = f'./unit_models/VIT_T5Base_fulllFT_train_withGDescL1forImpOrExpDetectionTrain_category_GENERAL/{chkp_id}'
+*** CARD_PATH: ./trained_cards/card_train_ExpOrImp_partialFT_singleCard_GENERAL
+
+	1. Use the following command to start training:
+
+	CUDA_VISIBLE_DEVICES=1 python3 main_L1forImpOrExpDetectionTrain.py    --category GENERAL     --output_len 10     --execution_mode train_withGDescL1forImpOrExpDetectionTrain     --epoch 10    --img_type vit       --user_msg rationale     --lr 5e-5     --use_caption     --use_generate     --prompt_format QCM-E     --output_dir experiments     --final_eval
+
+
+	2. While in inference, set projector_card to CARD_PATH in model_singleCard.py
+	3. Use the following command to start inference:
+
+	CUDA_VISIBLE_DEVICES=3 python3 pipe_testL1forImpOrExpDetectionTest.py         --execution_mode  test_withGDescL1forImpOrExpDetectionInference         --output_len 10         --img_type vit         --user_msg rationale         --epoch 1         --lr 5e-5         --use_caption         --use_generate         --prompt_format QCM-E         --output_dir experiments         --final_eval

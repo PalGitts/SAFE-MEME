@@ -1,0 +1,60 @@
+Instructions:
+
+* 	Create a conda environment:  conda create --name env_MANTIS
+* 	Activate the environment:	conda activate env_MANTIS
+*	Please install amazon-science/mm-cot: https://github.com/amazon-science/mm-cot
+*   	Run pip install -r requirements.txt
+
+*	Chnage directory to mm-cot
+
+*   	Add or replace the following file (folder) in mm-cot folder,
+		** timm: https://drive.google.com/drive/folders/1fVV9mmB6f05W7v2ZyoEt8__5Inh5eLja?usp=sharing
+		** vision_features: https://drive.google.com/drive/folders/1fVV9mmB6f05W7v2ZyoEt8__5Inh5eLja?usp=sharing
+		** unit_models: https://drive.google.com/drive/folders/1HZMsPkMoXjEw7NjbdmVuZ9U_0ykjq5xi?usp=sharing
+
+* 	Please put the all the .py files in mm-cot folder.
+* 	Create a folder namd, 'results'
+
+#
+# 	*** Note: The DatasetA-Regular represents the MHS-DB dataset while the DatasetB-Confounder represents the MHS-DBCon dataset
+#
+
+#
+# 	Training the MANTIS:
+#
+
+* 	File: main_trainUnitModels.py is used sequentially to train the model.
+* 	Stage 1: Kindly use the following command to train the query generation module: trainAllQueryGen
+
+CUDA_VISIBLE_DEVICES=0 python3 main_trainUnitModels.py    --full_FT YES     --img_type vit     --execution_mode  trainAllQueryGen     --user_msg rationale     --epoch 50 --lr 5e-5 --output_len 128     --use_caption --use_generate --prompt_format QCM-E     --output_dir experiments     --final_eval
+
+* 	Stage 1: Kindly use the following command to train the response generation module: trainAllQueryGen_1Q1A
+
+CUDA_VISIBLE_DEVICES=0 python3 main_trainUnitModels.py    --full_FT YES     --img_type vit     --execution_mode  trainAllQueryGen_1Q1A     --user_msg rationale     --epoch 50 --lr 5e-5 --output_len 85     --use_caption --use_generate --prompt_format QCM-E     --output_dir experiments     --final_eval
+
+#
+# Evaluating MANTIS:
+#
+
+* 	For evaluation of the DatasetA-Regular datset, use utils_dataTestUnitModels.py
+* 	Stage 1: Kindly use the following command to generate the set of queries.
+
+CUDA_VISIBLE_DEVICES=0 python3 pipe_testUnitModelsOutputGen.py         --execution_mode  testAllQueryGen         --img_type vit         --output_len 128         --full_FT YES         --user_msg rationale         --epoch 50         --lr 5e-5         --use_caption         --use_generate         --prompt_format QCM-E         --output_dir experiments         --final_eval
+
+* 	Stage 2: Kindly use the following command to generate the set of queries.
+
+CUDA_VISIBLE_DEVICES=0 python3 pipe_testUnitModelsOutputGen.py         --execution_mode  testAllQueryGen_1Q1A         --img_type vit         --output_len 85         --full_FT YES         --user_msg rationale         --epoch 50         --lr 5e-5         --use_caption         --use_generate         --prompt_format QCM-E         --output_dir experiments         --final_eval
+
+* 	Now, run showFinalResult-A.py to generate (print) the formatted outputs. 
+
+###
+
+* 	For evaluation of the DatasetB-Confounder datset, use utils_dataTestUnitModels_confounder.py
+* 	Stage 1: Kindly use the following command to generate the set of queries.
+CUDA_VISIBLE_DEVICES=0 python3 pipe_testUnitModelsOutputGen_confounder.py         --execution_mode  testAllQueryGen         --img_type vit         --output_len 128         --full_FT YES         --user_msg rationale         --epoch 50         --lr 5e-5         --use_caption         --use_generate         --prompt_format QCM-E         --output_dir experiments         --final_eval
+
+* 	Stage 2: Kindly use the following command to generate the set of queries.
+CUDA_VISIBLE_DEVICES=0 python3 pipe_testUnitModelsOutputGen_confounder.py         --execution_mode  testAllQueryGen_1Q1A         --img_type vit         --output_len 85         --full_FT YES         --user_msg rationale         --epoch 50         --lr 5e-5         --use_caption         --use_generate         --prompt_format QCM-E         --output_dir experiments         --final_eval
+
+* 	Now, run showFinalResult-B.py to generate (print) the formatted outputs. 
+
