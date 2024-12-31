@@ -8,11 +8,8 @@ import argparse
 import random
 from transformers import AutoTokenizer, DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer, T5ForConditionalGeneration
 
-# from model_RMMHS import T5ForMultimodalGeneration
-# # from model_noCards import T5ForMultimodalGeneration
 
-
-from util_trainSingleCardTrain import img_shape, CustomDatasetImg
+from util_gDescGeneration import img_shape, CustomDatasetImg
 # from utils_prompt import *
 # from utils_evaluate import get_scores
 from rich.table import Column, Table
@@ -28,17 +25,18 @@ import logging
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-log_file = f"./logFiles/mmCoT_singleCardTrain.log"
+log_file = f"./logFiles/train_partialFT_categoryCard_gDescGeneration_v2.log"
 file_handler = logging.FileHandler(log_file)
 logger.addHandler(file_handler)
 logger.info(f"START for main.py")
 
 '''
 ***** ATTENTION ***
-The purpose of the main_trainSingleCardGeneration.py is to finetune the category wise linear projectors. Train the models using the commands as per the mode.
+The purpose of the main_trainUnitModelsForEachCategory.py is to finetune the category wise unit modules. 
+It uses pre-trained weights of mm-cot-base-rationale.  
+Train the models using the commands as per the mode.
 
-Run:
-CUDA_VISIBLE_DEVICES=1 python3 main_trainSingleCardGeneration.py    --category THE_PEOPLE_WITH_DISABILITY     --output_len 85     --execution_mode train_gDescGeneration_singleCards     --epoch 50    --img_type vit       --user_msg rationale     --lr 5e-5     --use_caption     --use_generate     --prompt_format QCM-E     --output_dir experiments     --final_eval
+CUDA_VISIBLE_DEVICES=1 python3 main_trainGDescGeneration.py    --category GENERAL     --output_len 125     --execution_mode train_partialFT_categoryCard_gDescGeneration_v1     --epoch 20    --img_type vit       --user_msg rationale     --lr 5e-5     --use_caption     --use_generate     --prompt_format QCM-E     --output_dir experiments     --final_eval
 
 '''
 import pandas as pd
@@ -85,26 +83,21 @@ def parse_args():
     
     # List of valid modes
     mode_list = [
-        # 'train_helperModuleGDescCategorySpecific', # ol - 128
-        # 'train_helperModuleAllQuestionGenCategorySpecific', # ol - 90
-        # 'train_helperModule1Q1ACategorySpecific', # ol - 85
-        # 'train_helperModule1Q1ACategorySpecific_noCards', # ol - 85
+
+        'train_fullFT_noCard_gDescGeneration', # ol - 125
+        'train_partialFT_singleCard_gDescGeneration',
         
-        'train_noGDescSingleCardsAllQAGen', # ol - 256
-        'train_noGDescSingleCardsAllQueriesGen', # ol - 90
-        'train_noGDescSingleCards_1Q1A', # ol - 85
-
-        'train_withGDescSingleCardsAllQAGen', # ol - 256
-        'train_withGDescSingleCardsAllQueriesGen', # ol - 90
-        'train_withGDescSingleCards_1Q1A', # ol - 85
-
-        'train_gDescGeneration_singleCards', # 85
-
-        # 'train_benignOrNOT_fullFT_noCards', # ol - 10 # no_cardmodel.py # model_noCards - GENERAL
-        # 'train_benignOrNOT_partialFT_singleCard', # 10 # single-card # model_RMMHS - GENERAL
+        'train_fullFT_categoryCard_gDescGeneration_v1',
+        'train_partialFT_categoryCard_gDescGeneration_v1',
+        
+        'train_fullFT_categoryCard_gDescGeneration_v2',
+        'train_partialFT_categoryCard_gDescGeneration_v2',
+        
+        'train_fullFT_categoryCard_gDescGeneration_v3',
     ]
 
     # parser.add_argument('--data_root', type=str, default='data')
+    
     parser.add_argument('--category', type=str, default='QCM-A', choices=['OTHERS', 'GENERAL', 'NO_BODY', 'ISLAM', 'THE_PEOPLE_WITH_DISABILITY', 'THE_IMMIGRANT_PEOPLE', 'THE_WHITE_COMMUNITY', 'THE_BLACK_COMMUNITY', 'THE_JEWISH_COMMUNITY', 'THE_LGBTQ_COMMUNITY', 'WOMEN_IN_GENERAL', 'MEN_IN_GENERAL'])
     parser.add_argument('--execution_mode', type=str, choices=mode_list)
     
@@ -145,7 +138,7 @@ def get_df(id_list):
     df_initialized = False
     for idx_dataset in id_list:
 
-        path = ''# Please put the path to MHS.xlsx. *** ATTENTION ***        
+        path = f'/home2/palash/p0_ImplicitHateDetection/EMNLP_2024/usable_datasets/RMMHS_F/RMMHS_{idx_dataset}.xlsx' # Please path to DatasetA-Regular.xlsx, *** ATTENTION ***
         temp_df = pd.read_excel(path)
         
         if df_initialized == False:
@@ -321,12 +314,6 @@ def reform_df_contextBasedAnswerGeneration_1Q1A(df):
         
 
 
-
-
-
-
-
-
 def T5Trainer(args):
     logger.info(f'args: {args}')
 
@@ -354,52 +341,216 @@ def T5Trainer(args):
     #     logger.info(f"In T5ForMultimodalGeneration: Method name: {name}")
 
     if execution_mode in [
-        'train_noGDescSingleCardsAllQAGen', 'train_noGDescSingleCardsAllQueriesGen', 'train_noGDescSingleCards_1Q1A',
-        'train_withGDescSingleCardsAllQAGen', 'train_withGDescSingleCardsAllQueriesGen', 'train_withGDescSingleCards_1Q1A',
-        'train_gDescGeneration_singleCards',
+        'train_fullFT_noCard_gDescGeneration', # ol-125
+        'train_partialFT_singleCard_gDescGeneration',
+
+        'train_fullFT_categoryCard_gDescGeneration_v1',
+        'train_partialFT_categoryCard_gDescGeneration_v1',
+
+        'train_fullFT_categoryCard_gDescGeneration_v2',
+        'train_partialFT_categoryCard_gDescGeneration_v2',
         
+        'train_fullFT_categoryCard_gDescGeneration_v3',
+
     ]:
 
-        from model_singleCard import T5ForMultimodalGeneration
+        if execution_mode in ['train_fullFT_noCard_gDescGeneration']:
+
+            # *** model_def: model_noCardTrain
+            # *** save_dir: ./unit_models/VIT_T5Base_train_fullFT_noCard_gDescGeneration_category_GENERAL
+
+            from model_noCardTrain import T5ForMultimodalGeneration
+            save_dir = f'./unit_models/{args.img_type.upper()}_T5Base_{execution_mode}_category_{args.category}'
         
-        save_dir = f'unit_models/{args.img_type.upper()}_T5Base_partialFT_{execution_mode}_category_{args.category}'
+            logger.info(f'*** model_def: model_noCardTrain')  
+            logger.info(f'*** save_dir: {save_dir}')
+
+            model = T5ForMultimodalGeneration.from_pretrained(args.model, patch_size=patch_size)
+            logger.info(f'*****   model loaded: {args.model}: VIT')
         
+            for name, param in model.named_parameters():
+            
+                param.requires_grad = True
+                logger.info(f'{name}: {param.requires_grad}')
+
+        if execution_mode in ['train_partialFT_singleCard_gDescGeneration']:
+            
+            # *** model_def: model_singleCardTrain
+            # *** save_dir: ./unit_models/VIT_T5Base_train_partialFT_singleCard_gDescGeneration_category_GENERAL
+            # *** CARD_PATH: ./trained_cards/card_train_partialFT_singleCard_gDescGeneration_GENERAL
+
+            from model_singleCardTrain import T5ForMultimodalGeneration
+            save_dir = f'./unit_models/{args.img_type.upper()}_T5Base_{execution_mode}_category_{args.category}'
+            CARD_PATH = f'./trained_cards/card_{execution_mode}_{SAVE_EXT}'
+            
+            logger.info(f'*** model_def: model_singleCardTrain')  
+            logger.info(f'*** save_dir: {save_dir}')
+            logger.info(f'*** CARD_PATH: {CARD_PATH}')
+    
+
+            model = T5ForMultimodalGeneration.from_pretrained(args.model, patch_size=patch_size)
+            logger.info(f'*****   model loaded: {args.model}: VIT')
+        
+            for name, param in model.named_parameters():
+                
+                if 'card' in name:
+                    param.requires_grad = True
+                else:
+                    param.requires_grad = False
+                
+                logger.info(f'{name}: {param.requires_grad}')
+
+        if execution_mode in ['train_fullFT_categoryCard_gDescGeneration_v1']:
+
+            # *** model_def: model_combinedCardQAGenerationTrain_v0
+            # *** save_dir: ./unit_models/VIT_T5Base_train_fullFT_categoryCard_gDescGeneration_v1_category_GENERAL
+            # *** CARD_PATH: ./trained_cards/card_train_fullFT_categoryCard_gDescGeneration_v1_GENERAL
+
+            
+            from model_combinedCardGDescGenerationTrain_v1 import T5ForMultimodalGeneration
+            save_dir = f'./unit_models/{args.img_type.upper()}_T5Base_{execution_mode}_category_{args.category}'
+            CARD_PATH = f'./trained_cards/card_{execution_mode}_{SAVE_EXT}'
+            
+            logger.info(f'*** model_def: model_combinedCardQAGenerationTrain_v0')  
+            logger.info(f'*** save_dir: {save_dir}')
+            logger.info(f'*** CARD_PATH: {CARD_PATH}')
+    
+
+            model = T5ForMultimodalGeneration.from_pretrained(args.model, patch_size=patch_size)
+            logger.info(f'*****   model loaded: {args.model}: VIT')
+        
+            for name, param in model.named_parameters():
+                
+                if 'card' in name.lower().strip():
+                    param.requires_grad = True
+                else:
+                    param.requires_grad = True
+                
+                logger.info(f'{name}: {param.requires_grad}')
+
+
+        if execution_mode in ['train_partialFT_categoryCard_gDescGeneration_v1']:
+
+            # *** model_def: model_combinedCardQAGenerationTrain_v0
+            # *** save_dir: ./unit_models/VIT_T5Base_train_partialFT_categoryCard_gDescGeneration_v1_category_GENERAL
+            # *** CARD_PATH: ./trained_cards/card_train_partialFT_categoryCard_gDescGeneration_v1_GENERAL
+
+            
+            from model_combinedCardGDescGenerationTrain_v1 import T5ForMultimodalGeneration
+            save_dir = f'./unit_models/{args.img_type.upper()}_T5Base_{execution_mode}_category_{args.category}'
+            CARD_PATH = f'./trained_cards/card_{execution_mode}_{SAVE_EXT}'
+            
+            logger.info(f'*** model_def: model_combinedCardQAGenerationTrain_v0')  
+            logger.info(f'*** save_dir: {save_dir}')
+            logger.info(f'*** CARD_PATH: {CARD_PATH}')
+    
+
+            model = T5ForMultimodalGeneration.from_pretrained(args.model, patch_size=patch_size)
+            logger.info(f'*****   model loaded: {args.model}: VIT')
+        
+            for name, param in model.named_parameters():
+                
+                if 'card' in name.lower().strip():
+                    param.requires_grad = True
+                else:
+                    param.requires_grad = False
+                
+                logger.info(f'{name}: {param.requires_grad}')
+
+
         #
-        if execution_mode in ['train_noGDescSingleCardsAllQAGen']:
-            CARD_PATH = f'./trained_cards/noGDesc/allQA/card_{execution_mode}_{SAVE_EXT}'
-       
-        if execution_mode in [ 'train_noGDescSingleCardsAllQueriesGen']:     
-            CARD_PATH = f'./trained_cards/noGDesc/allQGen/card_{execution_mode}_{SAVE_EXT}'
+        if execution_mode in ['train_fullFT_categoryCard_gDescGeneration_v2']:
 
-        if execution_mode in ['train_noGDescSingleCards_1Q1A']:
-            CARD_PATH = f'./trained_cards/noGDesc/1Q1A/card_{execution_mode}_{SAVE_EXT}'
+            # *** model_def: model_combinedCardQAGenerationTrain_v1
+            # *** save_dir: ./unit_models/VIT_T5Base_train_fullFT_categoryCard_gDescGeneration_v2_category_GENERAL
+            # *** CARD_PATH: ./trained_cards/card_train_fullFT_categoryCard_gDescGeneration_v2_GENERAL
+
+            
+            from model_combinedCardGDescGenerationTrain_v1 import T5ForMultimodalGeneration
+            save_dir = f'./unit_models/{args.img_type.upper()}_T5Base_{execution_mode}_category_{args.category}'
+            CARD_PATH = f'./trained_cards/card_{execution_mode}_{SAVE_EXT}'
+            
+            logger.info(f'*** model_def: model_combinedCardQAGenerationTrain_v1')  
+            logger.info(f'*** save_dir: {save_dir}')
+            logger.info(f'*** CARD_PATH: {CARD_PATH}')
+    
+
+            model = T5ForMultimodalGeneration.from_pretrained(args.model, patch_size=patch_size)
+            logger.info(f'*****   model loaded: {args.model}: VIT')
+        
+            for name, param in model.named_parameters():
+                
+                if 'card' in name.lower().strip():
+                    param.requires_grad = True
+                else:
+                    param.requires_grad = True
+                
+                logger.info(f'{name}: {param.requires_grad}')
+
+
+        if execution_mode in ['train_partialFT_categoryCard_gDescGeneration_v2']:
+
+            # *** model_def: model_combinedCardQAGenerationTrain_v1
+            # *** save_dir: ./unit_models/VIT_T5Base_train_partialFT_categoryCard_gDescGeneration_v2_category_GENERAL
+            # *** CARD_PATH: ./trained_cards/card_train_partialFT_categoryCard_gDescGeneration_v2_GENERAL
+
+            
+            from model_combinedCardGDescGenerationTrain_v1 import T5ForMultimodalGeneration
+            save_dir = f'./unit_models/{args.img_type.upper()}_T5Base_{execution_mode}_category_{args.category}'
+            CARD_PATH = f'./trained_cards/card_{execution_mode}_{SAVE_EXT}'
+            
+            logger.info(f'*** model_def: model_combinedCardQAGenerationTrain_v1')  
+            logger.info(f'*** save_dir: {save_dir}')
+            logger.info(f'*** CARD_PATH: {CARD_PATH}')
+    
+
+            model = T5ForMultimodalGeneration.from_pretrained(args.model, patch_size=patch_size)
+            logger.info(f'*****   model loaded: {args.model}: VIT')
+        
+            for name, param in model.named_parameters():
+                
+                if 'card' in name.lower().strip():
+                    param.requires_grad = True
+                else:
+                    param.requires_grad = False
+                
+                logger.info(f'{name}: {param.requires_grad}')
+
         #
-        if execution_mode in ['train_withGDescSingleCardsAllQAGen']:
-            CARD_PATH = f'./trained_cards/withGDesc/allQA/card_{execution_mode}_{SAVE_EXT}'
-       
-        if execution_mode in [ 'train_withGDescSingleCardsAllQueriesGen']:     
-            CARD_PATH = f'./trained_cards/withGDesc/allQGen/card_{execution_mode}_{SAVE_EXT}'
+        print(execution_mode)
+        if execution_mode in ['train_fullFT_categoryCard_gDescGeneration_v3']:
 
-        if execution_mode in ['train_withGDescSingleCards_1Q1A']:
-            CARD_PATH = f'./trained_cards/withGDesc/1Q1A/card_{execution_mode}_{SAVE_EXT}'
+            # *** model_def: model_combinedCardQAGenerationTrain_v2
+            # *** save_dir: ./unit_models/VIT_T5Base_train_fullFT_categoryCard_gDescGeneration_v3_category_GENERAL
+            # *** CARD_PATH: ./trained_cards/card_train_fullFT_categoryCard_gDescGeneration_v3_GENERAL
+            
+            from model_combinedCardGDescGenerationTrain_v2 import T5ForMultimodalGeneration
+            save_dir = f'./unit_models/{args.img_type.upper()}_T5Base_{execution_mode}_category_{args.category}'
+            CARD_PATH = f'./trained_cards/card_{execution_mode}_{SAVE_EXT}'
+            
+            logger.info(f'*** model_def: model_combinedCardQAGenerationTrain_v2')  
+            logger.info(f'*** save_dir: {save_dir}')
+            logger.info(f'*** CARD_PATH: {CARD_PATH}')
+    
 
-        if execution_mode in ['train_gDescGeneration_singleCards']:
-            CARD_PATH = f'./trained_cards/gDescGen/new_cards/card_{execution_mode}_{SAVE_EXT}'
+            model = T5ForMultimodalGeneration.from_pretrained(args.model, patch_size=patch_size)
+            logger.info(f'*****   model loaded: {args.model}: VIT')
+        
+            for name, param in model.named_parameters():
+                
+                if 'card' in name.lower().strip():
+                    param.requires_grad = True
+                else:
+                    param.requires_grad = True
+                
+                logger.info(f'{name}: {param.requires_grad}')
 
-        logger.info(f'*** CARD_PATH: {CARD_PATH}')
+
+
+
         logger.info(f'*** save_dir: {save_dir}')
 
-        model = T5ForMultimodalGeneration.from_pretrained(args.model, patch_size=patch_size)
-        logger.info(f'*****   model loaded: {args.model}: VIT')
-    
-        for name, param in model.named_parameters():
-            if 'category_card' in name:
-                param.requires_grad = True
-                print(f'*** {name}: TRUE')
-            else:
-                param.requires_grad = False
-            
-            logger.info(f'{name}: {param.requires_grad}')
+        
 
 
     torch.manual_seed(args.seed)  # pytorch random seed
@@ -418,11 +569,15 @@ def T5Trainer(args):
 
     exp_trn_list = [1,2,3,4,5,6,7,8]; exp_val_list = [9]; exp_test_list = [11, 12, 13]
     imp_trn_list = [14,15,16,17,18,19, 20]; imp_val_list =[21]; imp_test_list = [28, 29, 30, 31]
-    # ben_trn_list = [33, 34, 35, 36, 37, 38, 39]; ben_val_list =  [40]; ben_test_list= [43]
+    ben_trn_list = [33, 34, 35, 36, 37, 38, 39]; ben_val_list =  [40]; ben_test_list= [43]
 
     logger.info(f'***** save_dir: {save_dir}')
 
-    train_df = get_df( exp_trn_list + imp_trn_list )
+    #
+    # train_path = f'./DatasetA-Regular/DatasetA-Regular_train.xlsx'
+    # val_path = f'./DatasetA-Regular/DatasetA-Regular_validation.xlsx'
+    
+    train_df = get_df( exp_trn_list + imp_trn_list + ben_trn_list )
     # train_df['TARGET'] = train_df['TARGET'].str.upper()
     
     logger.info(f'**** All categories: Unique target: {set( list(train_df["TARGET"])) }')
@@ -430,7 +585,7 @@ def T5Trainer(args):
     logger.info(f'**** train_df: { train_df.head()}')
     # raise Exception()
 
-    if execution_mode in [ 'train_noGDescSingleCards_1Q1A', 'train_withGDescSingleCards_1Q1A' ]:
+    if execution_mode in [ 'train_noGDescCombinedCards_1Q1A', 'train_withGDescCombinedCards_1Q1A' ]:
         train_df = reform_df(train_df)
         logger.info(f'****** After reform_df: train_df: { train_df.shape }')
     
@@ -443,11 +598,11 @@ def T5Trainer(args):
     logger.info(f'train_df: {train_df.shape}')
     logger.info(f'train_df: Unique target: { set(train_df["TARGET"])}')
     
-    eval_df = get_df( exp_val_list + imp_val_list )
+    eval_df = get_df( exp_val_list + imp_val_list + ben_val_list)
     # eval_df['TARGET'] = eval_df['TARGET'].str.upper()
 
 
-    if execution_mode in [ 'train_noGDescSingleCards_1Q1A', 'train_withGDescSingleCards_1Q1A' ]:
+    if execution_mode in [ 'train_noGDescCombinedCards_1Q1A', 'train_withGDescCombinedCards_1Q1A' ]:
         eval_df = reform_df( eval_df )
         logger.info(f'**** After reform_df: eval_df: { eval_df.shape }')
 
@@ -493,7 +648,7 @@ def T5Trainer(args):
     )
     logger.info(f'*** Evaluation set is created.')
     
-    logger.info(f'*** card_path: {CARD_PATH}')
+    # logger.info(f'*** card_path: {CARD_PATH}')
     logger.info(f'*** save_dir: {save_dir}')
     
     # raise Exception()
@@ -625,12 +780,51 @@ def T5Trainer(args):
     logger.info(f'*** Training: START: execution_mode: {execution_mode}')
     trainer.train()
     logger.info(f'*** Training: END: execution_mode: {execution_mode}')
+
+    if execution_mode in ['train_fullFT_noCard_gDescGeneration']:
+        trainer.save_model(save_dir)
+        logger.info(f'SAVED at: save_dir: {save_dir}: {args.execution_mode}')
+
+    if execution_mode in ['train_partialFT_singleCard_gDescGeneration']:
+        trainer.save_model(save_dir)
+        logger.info(f'SAVED at: save_dir: {save_dir}: {args.execution_mode}')
+        model.save_categoryCard(CARD_PATH)
+        logger.info(f'SAVED at: CARD_PATH: {CARD_PATH}: {args.execution_mode}')
+
+    if execution_mode in ['train_fullFT_categoryCard_gDescGeneration_v1']:
+        trainer.save_model(save_dir)
+        logger.info(f'SAVED at: save_dir: {save_dir}: {args.execution_mode}')
+        model.save_categoryCard(CARD_PATH)
+        logger.info(f'SAVED at: CARD_PATH: {CARD_PATH}: {args.execution_mode}')
+
+    if execution_mode in ['train_partialFT_categoryCard_gDescGeneration_v1']:
+        trainer.save_model(save_dir)
+        logger.info(f'SAVED at: save_dir: {save_dir}: {args.execution_mode}')
+        model.save_categoryCard(CARD_PATH)
+        logger.info(f'SAVED at: CARD_PATH: {CARD_PATH}: {args.execution_mode}')
+
+    if execution_mode in ['train_fullFT_categoryCard_gDescGeneration_v2']:
+        trainer.save_model(save_dir)
+        logger.info(f'SAVED at: save_dir: {save_dir}: {args.execution_mode}')
+        model.save_categoryCard(CARD_PATH)
+        logger.info(f'SAVED at: CARD_PATH: {CARD_PATH}: {args.execution_mode}')
+
+    if execution_mode in ['train_partialFT_categoryCard_gDescGeneration_v2']:
+        trainer.save_model(save_dir)
+        logger.info(f'SAVED at: save_dir: {save_dir}: {args.execution_mode}')
+        model.save_categoryCard(CARD_PATH)
+        logger.info(f'SAVED at: CARD_PATH: {CARD_PATH}: {args.execution_mode}')
+
+    if execution_mode in ['train_fullFT_categoryCard_gDescGeneration_v3']:
+        trainer.save_model(save_dir)
+        logger.info(f'SAVED at: save_dir: {save_dir}: {args.execution_mode}')
+        model.save_categoryCard(CARD_PATH)
+        logger.info(f'SAVED at: CARD_PATH: {CARD_PATH}: {args.execution_mode}')
+    
+
+
     
     
-    trainer.save_model(save_dir)
-    model.save_categoryCard(CARD_PATH)
-    logger.info(f'SAVED at: CARD_PATH: {CARD_PATH}: {args.execution_mode}')
-    logger.info(f'SAVED at: save_dir: {save_dir}: {args.execution_mode}')
 
 
 
@@ -656,7 +850,7 @@ if __name__ == '__main__':
     # logger.info("args",args)
     # logger.info('====Input Arguments====')
     # print(json.dumps(vars(args), indent=2, sort_keys=False))
-    logger.info(f'In main_trainUnitModelsForEachCategory.py')
+    logger.info(f'In main_trainCominedCardsGeneration.py')
     random.seed(args.seed)
     
     if not os.path.exists(args.output_dir):

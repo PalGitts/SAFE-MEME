@@ -25,7 +25,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-log_file = f"./logFiles/test_fullFT_categoryCard_gDescGeneration_v2.log"
+log_file = f"./logFiles/test_partialFT_categoryCard_gDescGeneration_v1.log"
 file_handler = logging.FileHandler(log_file)
 logger.addHandler(file_handler)
 logger.info(f"START for main.py")
@@ -37,7 +37,7 @@ logger.info(f"START for main.py")
 The file 'pipe_testUnitModelsOutputGen' is used for inference of DatasetAB-Regular and NO training.
 For MANTIS, kindly run the commands for testAllQueryGen, and testAllQueryGen_1Q1A sequentially.  
 
-CUDA_VISIBLE_DEVICES=0 python3 pipe_gDescGenerationTest.py         --execution_mode  test_fullFT_categoryCard_gDescGeneration_v2         --output_len 125         --img_type vit         --user_msg rationale         --epoch 1         --lr 5e-5         --use_caption         --use_generate         --prompt_format QCM-E         --output_dir experiments         --final_eval
+CUDA_VISIBLE_DEVICES=0 python3 pipe_gDescGenerationTest.py         --execution_mode  test_partialFT_categoryCard_gDescGeneration_v1         --output_len 125         --img_type vit         --user_msg rationale         --epoch 1         --lr 5e-5         --use_caption         --use_generate         --prompt_format QCM-E         --output_dir experiments         --final_eval
 
 '''
 category2save_dict = {
@@ -81,13 +81,13 @@ def parse_args():
         'test_fullFT_noCard_gDescGeneration', # ol - 125
         'test_partialFT_singleCard_gDescGeneration',
 
-        'test_fullFT_categoryCard_gDescGeneration_v0',
-        'test_partialFT_categoryCard_gDescGeneration_v0',
-
         'test_fullFT_categoryCard_gDescGeneration_v1',
         'test_partialFT_categoryCard_gDescGeneration_v1',
 
         'test_fullFT_categoryCard_gDescGeneration_v2',
+        'test_partialFT_categoryCard_gDescGeneration_v2',
+
+        'test_fullFT_categoryCard_gDescGeneration_v3',
     ]
 
 
@@ -137,7 +137,7 @@ def get_df(id_list):
     df_initialized = False
     for idx_dataset in id_list:
 
-        path = # Please path to DatasetA-Regular.xlsx, *** ATTENTION ***
+        path = f'/home2/palash/p0_ImplicitHateDetection/EMNLP_2024/usable_datasets/RMMHS_F/RMMHS_{idx_dataset}.xlsx' # Please path to MHS-train.xlsx, *** ATTENTION ***
         temp_df = pd.read_excel(path)
         
         if df_initialized == False:
@@ -366,17 +366,17 @@ def T5Trainer( args):
         
 
 
-    if execution_mode in ['test_fullFT_categoryCard_gDescGeneration_v0']:
+    if execution_mode in ['test_fullFT_categoryCard_gDescGeneration_v1']:
 
             # ***  model_def: model_combinedCardQAGenerationTrain_v0
             # *** save_dir: ./unit_models/VIT_T5Base_train_fullFT_categoryCard_gDescGeneration_v0_category_GENERAL
             # *** CARD_PATH: ./trained_cards/card_train_fullFT_categoryCard_gDescGeneration_v0_GENERAL
 
 
-        from model_combinedCardQAGenerationTrain_v0 import T5ForMultimodalGeneration
+        from model_combinedCardQAGenerationTrain_v1 import T5ForMultimodalGeneration
         logger.info(f'*** model_def: model_combinedCardQAGenerationTrain_v0')  
             
-        json_name = f'test_fullFT_categoryCard_gDescGeneration_v0.json'
+        json_name = f'test_fullFT_categoryCard_gDescGeneration_v1.json'
         logger.info(f'**** json_name: {json_name}')
                         
         chkp_id = 'checkpoint-3225/'
@@ -389,21 +389,22 @@ def T5Trainer( args):
         logger.info(f'*****   model loaded: {args.model}: VIT')
         
 
-    if execution_mode in ['test_partialFT_categoryCard_gDescGeneration_v0']:
+    if execution_mode in ['test_partialFT_categoryCard_gDescGeneration_v1']:
 
             # *** model_def: model_combinedCardQAGenerationTrain_v0
             # *** save_dir: ./unit_models/VIT_T5Base_train_partialFT_categoryCard_gDescGeneration_v0_category_GENERAL
             # *** CARD_PATH: ./trained_cards/card_train_partialFT_categoryCard_gDescGeneration_v0_GENERAL
 
 
-        from model_combinedCardQAGenerationTrain_v0 import T5ForMultimodalGeneration
+        from model_combinedCardGDescGenerationTrain_v1 import T5ForMultimodalGeneration
         logger.info(f'*** model_def: model_combinedCardQAGenerationTrain_v0')  
             
-        json_name = f'test_partialFT_categoryCard_gDescGeneration_v0.json'
+        json_name = f'test_partialFT_categoryCard_gDescGeneration_v1.json'
         logger.info(f'**** json_name: {json_name}')
                         
         chkp_id = 'checkpoint-6450/'
-        model_dir = f'./unit_models/VIT_T5Base_train_partialFT_categoryCard_gDescGeneration_v0_category_GENERAL/{chkp_id}'
+        # model_dir = f'./unit_models/VIT_T5Base_train_partialFT_categoryCard_gDescGeneration_v1_category_GENERAL/{chkp_id}'
+        model_dir = f'./unit_models/mm-cot-base-rationale/checkpoint-873/'
         logger.info(f'***** model_dir: {model_dir}')
         
     #
@@ -412,17 +413,17 @@ def T5Trainer( args):
         logger.info(f'*****   model loaded: {args.model}: VIT')
 
     
-    if execution_mode in ['test_fullFT_categoryCard_gDescGeneration_v1']:
+    if execution_mode in ['test_fullFT_categoryCard_gDescGeneration_v2']:
 
             # *** model_def: model_combinedCardQAGenerationTrain_v1
             # *** save_dir: ./unit_models/VIT_T5Base_train_fullFT_categoryCard_gDescGeneration_v1_category_GENERAL
             # *** CARD_PATH: ./trained_cards/card_train_fullFT_categoryCard_gDescGeneration_v1_GENERAL
 
 
-        from model_combinedCardQAGenerationTrain_v1 import T5ForMultimodalGeneration
+        from model_combinedCardQAGenerationTrain_v2 import T5ForMultimodalGeneration
         logger.info(f'*** model_def: model_combinedCardQAGenerationTrain_v1')  
             
-        json_name = f'test_fullFT_categoryCard_gDescGeneration_v1.json'
+        json_name = f'test_fullFT_categoryCard_gDescGeneration_v2.json'
         logger.info(f'**** json_name: {json_name}')
                         
         chkp_id = 'checkpoint-3225/'
@@ -435,7 +436,7 @@ def T5Trainer( args):
         logger.info(f'*****   model loaded: {args.model}: VIT')
 
     
-    if execution_mode in ['test_partialFT_categoryCard_gDescGeneration_v1']:
+    if execution_mode in ['test_partialFT_categoryCard_gDescGeneration_v2']:
 
             # *** model_def: model_combinedCardQAGenerationTrain_v1
             # *** save_dir: ./unit_models/VIT_T5Base_train_partialFT_categoryCard_gDescGeneration_v1_category_GENERAL
@@ -443,10 +444,10 @@ def T5Trainer( args):
 
 
 
-        from model_combinedCardQAGenerationTrain_v1 import T5ForMultimodalGeneration
+        from model_combinedCardQAGenerationTrain_v2 import T5ForMultimodalGeneration
         logger.info(f'*** model_def: model_combinedCardQAGenerationTrain_v1')  
             
-        json_name = f'test_partialFT_categoryCard_gDescGeneration_v1.json'
+        json_name = f'test_partialFT_categoryCard_gDescGeneration_v2.json'
         logger.info(f'**** json_name: {json_name}')
                         
         chkp_id = 'checkpoint-6450/'
@@ -459,17 +460,17 @@ def T5Trainer( args):
         logger.info(f'*****   model loaded: {args.model}: VIT')
 
     
-    if execution_mode in ['test_fullFT_categoryCard_gDescGeneration_v2']:
+    if execution_mode in ['test_fullFT_categoryCard_gDescGeneration_v3']:
 
             # *** model_def: model_combinedCardQAGenerationTrain_v2
             # *** save_dir: ./unit_models/VIT_T5Base_train_fullFT_categoryCard_gDescGeneration_v2_category_GENERAL
             # *** CARD_PATH: ./trained_cards/card_train_fullFT_categoryCard_gDescGeneration_v2_GENERAL
 
 
-        from model_combinedCardQAGenerationTrain_v2 import T5ForMultimodalGeneration
+        from model_combinedCardQAGenerationTrain_v3 import T5ForMultimodalGeneration
         logger.info(f'*** model_def: model_combinedCardQAGenerationTrain_v2')  
             
-        json_name = f'test_fullFT_categoryCard_gDescGeneration_v2.json'
+        json_name = f'test_fullFT_categoryCard_gDescGeneration_v3.json'
         logger.info(f'**** json_name: {json_name}')
                         
         chkp_id = 'checkpoint-9350/'
@@ -514,11 +515,11 @@ def T5Trainer( args):
     if execution_mode in [ 
         'test_fullFT_noCard_gDescGeneration', 'test_partialFT_singleCard_gDescGeneration',
 
-        'test_fullFT_categoryCard_gDescGeneration_v0', 'test_partialFT_categoryCard_gDescGeneration_v0',
-
         'test_fullFT_categoryCard_gDescGeneration_v1', 'test_partialFT_categoryCard_gDescGeneration_v1',
 
-        'test_fullFT_categoryCard_gDescGeneration_v2',
+        'test_fullFT_categoryCard_gDescGeneration_v2', 'test_partialFT_categoryCard_gDescGeneration_v2',
+
+        'test_fullFT_categoryCard_gDescGeneration_v3',
     ]:
         test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
         
@@ -709,11 +710,11 @@ def T5Trainer( args):
                     if execution_mode in [
                         'test_fullFT_noCard_gDescGeneration', 'test_partialFT_singleCard_gDescGeneration',
 
-                        'test_fullFT_categoryCard_gDescGeneration_v0', 'test_partialFT_categoryCard_gDescGeneration_v0',
-
                         'test_fullFT_categoryCard_gDescGeneration_v1', 'test_partialFT_categoryCard_gDescGeneration_v1',
 
-                        'test_fullFT_categoryCard_gDescGeneration_v2',
+                        'test_fullFT_categoryCard_gDescGeneration_v2', 'test_partialFT_categoryCard_gDescGeneration_v2',
+
+                        'test_fullFT_categoryCard_gDescGeneration_v3',
                     ]:
                         
                         id2info[image_id] = {
