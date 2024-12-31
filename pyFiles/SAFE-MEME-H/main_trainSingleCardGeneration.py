@@ -146,7 +146,8 @@ def get_df(id_list):
     df_initialized = False
     for idx_dataset in id_list:
 
-        path = # Please path to DatasetA-Regular.xlsx, *** ATTENTION ***        temp_df = pd.read_excel(path)
+        path = ''# Please put the path to MHS.xlsx. *** ATTENTION ***        
+        temp_df = pd.read_excel(path)
         
         if df_initialized == False:
             df = temp_df
@@ -422,10 +423,6 @@ def T5Trainer(args):
 
     logger.info(f'***** save_dir: {save_dir}')
 
-    #
-    # train_path = f'./DatasetA-Regular/DatasetA-Regular_train.xlsx'
-    # val_path = f'./DatasetA-Regular/DatasetA-Regular_validation.xlsx'
-    
     train_df = get_df( exp_trn_list + imp_trn_list )
     # train_df['TARGET'] = train_df['TARGET'].str.upper()
     

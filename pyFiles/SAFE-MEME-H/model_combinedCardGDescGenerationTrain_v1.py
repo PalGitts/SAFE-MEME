@@ -24,27 +24,59 @@ import logging
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-log_file = f"./logFiles/train_benignOrNOT_partialFT_singleCard.log"
+log_file = f"./logFiles/train_partialFT_categoryCard_gDescGeneration_v0.log"
 file_handler = logging.FileHandler(log_file)
 logger.addHandler(file_handler)
 
-current_device = torch.cuda.current_device() 
-logger.info(f"START for model.py: device: {current_device}")
 
 hidden_dim = 768
-# category_card = torch.nn.Linear(hidden_dim, hidden_dim) # when training the linear projectors
-# category_card = torch.load(f'./trained_cards/card_train_benignOrNOT_partialFT_singleCard_GENERAL').to(current_device) # For first level classification
-# category_card = torch.load(f'./trained_cards/card_train_ExpOrImp_partialFT_singleCard_GENERAL').to(current_device) # For second level classification
+current_device_id = torch.cuda.current_device()
+# projector_card = torch.nn.Linear(hidden_dim, hidden_dim, device=current_device_id)
+projector_card = torch.load(f'./trained_cards/card_train_partialFT_categoryCard_gDescGeneration_v0_GENERAL').to(current_device_id)
+logger.info(f'*** projector_card: {current_device_id}')
 
+# path = f'./trained_cards/noGDesc/allQA/card_train_noGDescSingleCardsAllQAGen'
+# path = f'./trained_cards/noGDesc/allQA/card_train_withGDescSingleCardsAllQAGen'
 
-logger.info(f'*** card_train_benignOrNOT_partialFT_singleCard_GENERAL is loaded.')
+# path = f'./trained_cards/noGDesc/allQGen/card_train_noGDescSingleCardsAllQueriesGen'
+# path = f'./trained_cards/withGDesc/allQGen/card_train_withGDescSingleCardsAllQueriesGen'
+# path = f'./trained_cards/noGDesc/1Q1A/card_train_noGDescSingleCards_1Q1A'
+# path = f'./trained_cards/withGDesc/1Q1A/card_train_withGDescSingleCards_1Q1A'
+path = f'./trained_cards/gDescGen/new_cards/card_train_gDescGeneration_singleCards'
+
+savedCard_ISLAM = torch.load(f'{path}_ISALM').to(current_device_id)
+savedCard_MEN = torch.load(f'{path}_MEN').to(current_device_id)
+savedCard_WOMEN = torch.load(f'{path}_WOMEN').to(current_device_id)
+savedCard_BLACK = torch.load(f'{path}_WHITE').to(current_device_id)      
+savedCard_WHITE = torch.load(f'{path}_BLACK').to(current_device_id)
+savedCard_JEWS = torch.load(f'{path}_LGBTQ').to(current_device_id)
+savedCard_LGBTQ = torch.load(f'{path}_JEWS').to(current_device_id)
+savedCard_DISABILITY = torch.load(f'{path}_DISABILITY').to(current_device_id)
+savedCard_IMMIGRANT = torch.load(f'{path}_IMMIGRANT').to(current_device_id)
+savedCard_GENERAL = torch.load(f'{path}_GENERAL').to(current_device_id)
+savedCard_OTHERS = torch.load(f'{path}_OTHERS').to(current_device_id)
+
+# path = f'./trained_cards/withGDesc/allQA'
+# savedCard_ISLAM = torch.load(f'{path}/card_train_withGDescSingleCardsAllQAGen_ISALM').to(current_device_id)
+# savedCard_MEN = torch.load(f'{path}/card_train_withGDescSingleCardsAllQAGen_MEN').to(current_device_id)
+# savedCard_WOMEN = torch.load(f'{path}/card_train_withGDescSingleCardsAllQAGen_WOMEN').to(current_device_id)
+# savedCard_BLACK = torch.load(f'{path}/card_train_withGDescSingleCardsAllQAGen_WHITE').to(current_device_id)      
+# savedCard_WHITE = torch.load(f'{path}/card_train_withGDescSingleCardsAllQAGen_BLACK').to(current_device_id)
+# savedCard_JEWS = torch.load(f'{path}/card_train_withGDescSingleCardsAllQAGen_LGBTQ').to(current_device_id)
+# savedCard_LGBTQ = torch.load(f'{path}/card_train_withGDescSingleCardsAllQAGen_JEWS').to(current_device_id)
+# savedCard_DISABILITY = torch.load(f'{path}/card_train_withGDescSingleCardsAllQAGen_DISABILITY').to(current_device_id)
+# savedCard_IMMIGRANT = torch.load(f'{path}/card_train_withGDescSingleCardsAllQAGen_IMMIGRANT').to(current_device_id)
+# savedCard_GENERAL = torch.load(f'{path}/card_train_withGDescSingleCardsAllQAGen_GENERAL').to(current_device_id)
+# savedCard_OTHERS = torch.load(f'{path}/card_train_withGDescSingleCardsAllQAGen_OTHERS').to(current_device_id)
+
+logger.info(f'*** path for cards: {path} : from M0')
+
 
 class JointEncoder(T5Stack):
     def __init__(self, config, embed_tokens=None, patch_size=None):
         super().__init__(config)
 
         global category_card
-        self.category_card = category_card
         
         logger.info(f'JointEncoder: model.py: \n{config}')
         self.embed_tokens = embed_tokens
@@ -68,6 +100,14 @@ class JointEncoder(T5Stack):
         self.model_parallel = False
         self.device_map = None
         self.gradient_checkpointing = False
+
+        
+        global projector_card
+        self.projector_card = projector_card
+
+        logger.info(f'card_ISLAM is loaded: {savedCard_ISLAM}')
+
+        # raise Exception('***')
 
     def parallelize(self, device_map=None):
         warnings.warn(
@@ -120,7 +160,7 @@ class JointEncoder(T5Stack):
     def get_categoryCard(self):
         
         logger.info(f'*** The ategroy card is returned from JointEncoder.')
-        return self.category_card
+        return self.projector_card
 
 
     def forward(
@@ -314,6 +354,30 @@ class JointEncoder(T5Stack):
         if output_hidden_states:
             all_hidden_states = all_hidden_states + (hidden_states,)
         
+        global savedCard_ISLAM
+        global savedCard_MEN
+        global savedCard_WOMEN
+        global savedCard_BLACK
+        global savedCard_WHITE
+        global savedCard_JEWS
+        global savedCard_LGBTQ
+        global savedCard_DISABILITY
+        global savedCard_IMMIGRANT
+        global savedCard_GENERAL
+        global savedCard_OTHERS 
+        
+        # logger.info(f'*** savedCard_ISLAM: {savedCard_ISLAM}')
+        # logger.info(f'*** savedCard_MEN: {savedCard_MEN}')
+        # logger.info(f'*** savedCard_WOMEN: {savedCard_WOMEN}')
+        # logger.info(f'*** savedCard_BLACK: {savedCard_BLACK}')
+        # logger.info(f'*** savedCard_WHITE: {savedCard_WHITE}')
+        # logger.info(f'*** savedCard_JEWS: {savedCard_JEWS}')
+        # logger.info(f'*** savedCard_LGBTQ: {savedCard_LGBTQ}')
+        # logger.info(f'*** savedCard_DISABILITY: {savedCard_DISABILITY}')
+        # logger.info(f'*** savedCard_IMMIGRANT: {savedCard_IMMIGRANT}')
+        # logger.info(f'*** savedCard_GENERAL: {savedCard_GENERAL}')
+        # logger.info(f'*** savedCard_OTHERS: {savedCard_OTHERS}')
+        
         image_embedding = self.image_dense(image_ids)
 
         image_att, _ = self.mha_layer(hidden_states, image_embedding, image_embedding)
@@ -322,11 +386,26 @@ class JointEncoder(T5Stack):
         gate = self.sigmoid(self.gate_dense(merge))
         hidden_states = (1 - gate) * hidden_states + gate * image_att
 
-        logger.info(f'hidden_states: Before the categoryCard: {hidden_states.shape}: {hidden_states.device}')
-        hidden_states = self.category_card(hidden_states)
-        logger.info(f'hidden_states: After the categoryCard: {hidden_states.shape}')
+        #
+        t0 = savedCard_ISLAM(hidden_states)
+        t1 = savedCard_MEN(hidden_states)
+        t2 = savedCard_WOMEN(hidden_states)
+        t3 = savedCard_BLACK(hidden_states)
+        t4 = savedCard_WHITE(hidden_states)
+        t5 = savedCard_JEWS(hidden_states)
+        t6 = savedCard_LGBTQ(hidden_states)
+        t7 = savedCard_DISABILITY(hidden_states)
+        t8 = savedCard_IMMIGRANT(hidden_states)
+        t9 = savedCard_GENERAL(hidden_states)
+        t10 = savedCard_OTHERS(hidden_states)
 
-        logger.info(f'hidden_states :{hidden_states.shape}')
+        sum_tensor = t0 + t1 + t2 + t3 + + t4 + t5 + t6 + t7 + t8 + t9 + t10
+        sum_tensor = sum_tensor / 11
+        hidden_states = hidden_states + sum_tensor
+        # logger.info(f'\n*** hidden_states after special_operation: {hidden_states.shape}\n')
+        
+        #
+        # logger.info(f'hidden_states :{hidden_states.shape}')
         if not return_dict:
             return tuple(
                 v
