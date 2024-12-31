@@ -24,28 +24,25 @@ import logging
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-log_file = f"./logFiles/train_partialFT_categoryCard_gDescGeneration_v1.log"
+log_file = f"./logFiles/train_partialFT_categoryCard_gDescGeneration_v0.log"
 file_handler = logging.FileHandler(log_file)
 logger.addHandler(file_handler)
 
 
 hidden_dim = 768
 current_device_id = torch.cuda.current_device()
-# projector_card = torch.nn.Linear(hidden_dim, 1, device=current_device_id)
-
-projector_card = torch.load(f'./trained_cards/card_train_fullFT_categoryCard_gDescGeneration_v1_GENERAL').to(current_device_id)
+# projector_card = torch.nn.Linear(hidden_dim, hidden_dim, device=current_device_id)
+projector_card = torch.load(f'./trained_cards/card_train_partialFT_categoryCard_gDescGeneration_v0_GENERAL').to(current_device_id)
 logger.info(f'*** projector_card: {current_device_id}')
-
-# QA
 
 # path = f'./trained_cards/noGDesc/allQA/card_train_noGDescSingleCardsAllQAGen'
 # path = f'./trained_cards/noGDesc/allQA/card_train_withGDescSingleCardsAllQAGen'
+
 # path = f'./trained_cards/noGDesc/allQGen/card_train_noGDescSingleCardsAllQueriesGen'
 # path = f'./trained_cards/withGDesc/allQGen/card_train_withGDescSingleCardsAllQueriesGen'
 # path = f'./trained_cards/noGDesc/1Q1A/card_train_noGDescSingleCards_1Q1A'
 # path = f'./trained_cards/withGDesc/1Q1A/card_train_withGDescSingleCards_1Q1A'
 path = f'./trained_cards/gDescGen/new_cards/card_train_gDescGeneration_singleCards'
-
 
 savedCard_ISLAM = torch.load(f'{path}_ISALM').to(current_device_id)
 savedCard_MEN = torch.load(f'{path}_MEN').to(current_device_id)
@@ -72,14 +69,14 @@ savedCard_OTHERS = torch.load(f'{path}_OTHERS').to(current_device_id)
 # savedCard_GENERAL = torch.load(f'{path}/card_train_withGDescSingleCardsAllQAGen_GENERAL').to(current_device_id)
 # savedCard_OTHERS = torch.load(f'{path}/card_train_withGDescSingleCardsAllQAGen_OTHERS').to(current_device_id)
 
-logger.info(f'*** path for cards: {path}: from M1')
+logger.info(f'*** path for cards: {path} : from M0')
 
 
 class JointEncoder(T5Stack):
     def __init__(self, config, embed_tokens=None, patch_size=None):
         super().__init__(config)
 
-        # global category_card
+        global category_card
         
         logger.info(f'JointEncoder: model.py: \n{config}')
         self.embed_tokens = embed_tokens
@@ -391,41 +388,17 @@ class JointEncoder(T5Stack):
 
         #
         t0 = savedCard_ISLAM(hidden_states)
-        t0 = hidden_states * self.projector_card(t0)
         t1 = savedCard_MEN(hidden_states)
-        t1 = hidden_states * self.projector_card(t1)
         t2 = savedCard_WOMEN(hidden_states)
-        t2 = hidden_states * self.projector_card(t2)
         t3 = savedCard_BLACK(hidden_states)
-        t3 = hidden_states * self.projector_card(t3)
         t4 = savedCard_WHITE(hidden_states)
-        t4 = hidden_states * self.projector_card(t4)
         t5 = savedCard_JEWS(hidden_states)
-        t5 = hidden_states * self.projector_card(t5)
         t6 = savedCard_LGBTQ(hidden_states)
-        t6 = hidden_states * self.projector_card(t6)
         t7 = savedCard_DISABILITY(hidden_states)
-        t7 = hidden_states * self.projector_card(t7)
         t8 = savedCard_IMMIGRANT(hidden_states)
-        t8 = hidden_states * self.projector_card(t8)
         t9 = savedCard_GENERAL(hidden_states)
-        t9 = hidden_states * self.projector_card(t9)
         t10 = savedCard_OTHERS(hidden_states)
-        t10 = hidden_states * self.projector_card(t10)
 
-        # logger.info(f'*** t0: {t0.shape}')
-        # logger.info(f'*** t1: {t1.shape}')
-        # logger.info(f'*** t2: {t2.shape}')
-        # logger.info(f'*** t3: {t3.shape}')
-        # logger.info(f'*** t4: {t4.shape}')
-        # logger.info(f'*** t5: {t5.shape}')
-        # logger.info(f'*** t6: {t6.shape}')
-        # logger.info(f'*** t7: {t7.shape}')
-        # logger.info(f'*** t8: {t8.shape}')
-        # logger.info(f'*** t9: {t9.shape}')
-        # logger.info(f'*** t10: {t10.shape}')
-        
-        # raise Exception(f'***')
         sum_tensor = t0 + t1 + t2 + t3 + + t4 + t5 + t6 + t7 + t8 + t9 + t10
         sum_tensor = sum_tensor / 11
         hidden_states = hidden_states + sum_tensor
