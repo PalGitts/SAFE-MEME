@@ -25,21 +25,22 @@ Instructions:
 # 	Training the general description (Y_gdesc) model:
 #
 
-*** Training file: main_trainSingleCardGeneration.py 
+*** Training file: main_trainGDescGeneration.py 
 *** Inference file: pipe_gDescGenerationTest.py
 *** Linked files: util_gDescGeneration.py, model_combinedCardGDescGenerationTrain_v1.py
-*** chkp_id = 'checkpoint-3225/'
-*** model_dir = f'./unit_models/VIT_T5Base_train_fullFT_categoryCard_gDescGeneration_v1_category_GENERAL/{chkp_id}'
-*** CARD_PATH: ./trained_cards/card_train_fullFT_categoryCard_gDescGeneration_v1_GENERAL
+*** chkp_id = 'checkpoint-6450/'
+*** model_dir = f'./unit_models/VIT_T5Base_train_partialFT_categoryCard_gDescGeneration_v1_category_GENERAL/{chkp_id}'
 	
 	1. Use the following command to start training:
 
-	CUDA_VISIBLE_DEVICES=1 python3 main_trainGDescGeneration.py    --category GENERAL     --output_len 125     --execution_mode train_fullFT_categoryCard_gDescGeneration_v1     --epoch 20    --img_type vit       --user_msg rationale     --lr 5e-5     --use_caption     --use_generate     --prompt_format QCM-E     --output_dir experiments     --final_eval
+	CUDA_VISIBLE_DEVICES=1 python3 main_trainGDescGeneration.py    --category GENERAL     --output_len 125     --execution_mode train_partialFT_categoryCard_gDescGeneration_v1     --epoch 20    --img_type vit       --user_msg rationale     --lr 5e-5     --use_caption     --use_generate     --prompt_format QCM-E     --output_dir experiments     --final_eval
 
-	2. While in inference, set projector_card to CARD_PATH in model_combinedCardQAGenerationTrain_v1.py
+
+	2. While in inference, set projector_card to card_train_partialFT_categoryCard_gDescGeneration_v0_GENERAL in model_combinedCardGDescGenerationTrain_v1.py
 	3. Use the following command to start inference:
 
-	CUDA_VISIBLE_DEVICES=0 python3 pipe_gDescGenerationTest.py         --execution_mode  test_fullFT_categoryCard_gDescGeneration_v1         --output_len 125         --img_type vit         --user_msg rationale         --epoch 1         --lr 5e-5         --use_caption         --use_generate         --prompt_format QCM-E         --output_dir experiments         --final_eval
+	CUDA_VISIBLE_DEVICES=0 python3 pipe_gDescGenerationTest.py         --execution_mode  test_partialFT_categoryCard_gDescGeneration_v1         --output_len 125         --img_type vit         --user_msg rationale         --epoch 1         --lr 5e-5         --use_caption         --use_generate         --prompt_format QCM-E         --output_dir experiments         --final_eval
+
 
 
 #
