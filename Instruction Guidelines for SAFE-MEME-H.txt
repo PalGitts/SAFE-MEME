@@ -16,12 +16,18 @@ Instructions:
 
 
 #
-# 	Training the generl description (Y_gdesc) model:
+# 	Training the linear projectors for each category:
+#
+*** Training file: main_trainSingleCardGeneration.py 
+*** Linked files:  util_trainSingleCardTrain.py, model_singleCard.py
+
+#
+# 	Training the general description (Y_gdesc) model:
 #
 
-***	Training file: main_trainSingleCardGeneration.py 
+*** Training file: main_trainSingleCardGeneration.py 
 *** Inference file: pipe_gDescGenerationTest.py
-***	Linked files: util_gDescGeneration.py, model_combinedCardQAGenerationTrain_v1.py
+*** Linked files: util_gDescGeneration.py, model_combinedCardGDescGenerationTrain_v1.py
 *** chkp_id = 'checkpoint-3225/'
 *** model_dir = f'./unit_models/VIT_T5Base_train_fullFT_categoryCard_gDescGeneration_v1_category_GENERAL/{chkp_id}'
 *** CARD_PATH: ./trained_cards/card_train_fullFT_categoryCard_gDescGeneration_v1_GENERAL
