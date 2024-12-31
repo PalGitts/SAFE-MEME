@@ -8,9 +8,8 @@ Instructions:
 *	Chnage directory to mm-cot
 
 *   	Add or replace the following file (folder) in mm-cot folder,
-		** timm: https://drive.google.com/drive/folders/1fVV9mmB6f05W7v2ZyoEt8__5Inh5eLja?usp=sharing
-		** vision_features: https://drive.google.com/drive/folders/1fVV9mmB6f05W7v2ZyoEt8__5Inh5eLja?usp=sharing
-		** unit_models: https://drive.google.com/drive/folders/1fVV9mmB6f05W7v2ZyoEt8__5Inh5eLja?usp=sharing
+		** timm, vision_features, unit_models (can be trained from scratch too)
+		** use: https://drive.google.com/drive/folders/1PWESNhZIDa1YL6aipVyrl_Pwo4LYo1Zu?usp=sharing
 
 * 	Please put the all the .py files in mm-cot folder.
 * 	Create a folder named, 'results'
