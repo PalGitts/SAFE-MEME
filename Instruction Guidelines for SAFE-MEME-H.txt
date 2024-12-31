@@ -11,7 +11,7 @@ Instructions:
 		** timm, vision_features, unit_models (can be trained from scratch too)
 		** use: https://drive.google.com/drive/folders/1PWESNhZIDa1YL6aipVyrl_Pwo4LYo1Zu?usp=sharing
 
-* 	Please put the all the .py files in mm-cot folder.
+* 	Please put the all the .py files from pyFiles folder in mm-cot folder.
 * 	Create a folder named, 'results'
 
 
