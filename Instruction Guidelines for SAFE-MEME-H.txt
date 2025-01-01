@@ -73,7 +73,7 @@ Instructions:
 
 *** Training file: main_L1forImpOrExpDetectionTrain.py
 *** Inference file: pipe_testL1forImpOrExpDetectionTest.py
-***	Linked files: util_L1forImpOrExpDetectionTrain.py, model_singleCard.py
+*** Linked files: util_L1forImpOrExpDetectionTrain.py, model_singleCard.py
 *** chkp_id = 'checkpoint-903/'
 *** model_dir = f'./unit_models/VIT_T5Base_fulllFT_train_withGDescL1forImpOrExpDetectionTrain_category_GENERAL/{chkp_id}'
 *** CARD_PATH: ./trained_cards/card_train_ExpOrImp_partialFT_singleCard_GENERAL
