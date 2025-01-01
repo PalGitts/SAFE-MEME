@@ -130,7 +130,7 @@ def get_df(id_list):
     df_initialized = False
     for idx_dataset in id_list:
 
-        path = # Please path to DatasetA-Regular.xlsx, *** ATTENTION ***
+        path = f'/home2/palash/p0_ImplicitHateDetection/EMNLP_2024/usable_datasets/RMMHS_F/RMMHS_{idx_dataset}.xlsx' # Please path to DatasetA-Regular.xlsx, *** ATTENTION ***
         temp_df = pd.read_excel(path)
         
         if df_initialized == False:
@@ -345,7 +345,7 @@ def T5Trainer( args):
             # json_L0 = f'./results/test_L0_usingpartialFTCategoryCardbasedGDesc_v1.json'
             # json_name = f'test_L1_usingpartialFTCategoryCardbasedGDesc_v1.json'
 
-            json_L0 = f'./results/test_L0_usingpartialFTCategoryCardbasedGDesc_v2.json'
+            json_L0 = f'./results/test_L0_usingpartialFTCategoryCardbasedGDesc_v1.json'
             json_name = f'test_L1_usingpartialFTCategoryCardbasedGDesc_v2.json'
 
     
