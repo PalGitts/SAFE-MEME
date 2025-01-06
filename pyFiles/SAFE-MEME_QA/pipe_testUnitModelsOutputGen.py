@@ -9,8 +9,8 @@ import random
 from transformers import AutoTokenizer, DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer, T5ForConditionalGeneration
 from model import T5ForMultimodalGeneration
 from utils_dataTestUnitModels import img_shape, CustomDatasetImg
-from utils_prompt import *
-from utils_evaluate import get_scores
+# from utils_prompt import *
+# from utils_evaluate import get_scores
 from rich.table import Column, Table
 from rich import box
 from rich.console import Console
@@ -24,7 +24,7 @@ from tqdm import tqdm
 '''
 ***** ATTENTION ****
 The file 'pipe_testUnitModelsOutputGen' is used for inference of DatasetAB-Regular and NO training.
-For MANTIS, kindly run the commands for testAllQueryGen, and testAllQueryGen_1Q1A sequentially.  
+Kindly run the commands for testAllQueryGen, and testAllQueryGen_1Q1A sequentially.  
 
 CUDA_VISIBLE_DEVICES=0 python3 pipe_testUnitModelsOutputGen.py         --execution_mode  testAllQueryGen         --img_type vit         --output_len 85         --full_FT YES         --user_msg rationale         --epoch 50         --lr 5e-5         --use_caption         --use_generate         --prompt_format QCM-E         --output_dir experiments         --final_eval
 CUDA_VISIBLE_DEVICES=0 python3 pipe_testUnitModelsOutputGen.py         --execution_mode  testAllQueryGen_1Q1A         --img_type vit         --output_len 85         --full_FT YES         --user_msg rationale         --epoch 50         --lr 5e-5         --use_caption         --use_generate         --prompt_format QCM-E         --output_dir experiments         --final_eval
@@ -122,7 +122,7 @@ def get_df(id_list):
     df_initialized = False
     for idx_dataset in id_list:
 
-        path = '' # Please path to DatasetA-Regular.xlsx, *** ATTENTION ***
+        path = f'/home2/palash/p0_ImplicitHateDetection/EMNLP_2024/usable_datasets/RMMHS_F/RMMHS_{idx_dataset}.xlsx' # Please path to DatasetA-Regular.xlsx, *** ATTENTION ***
         temp_df = pd.read_excel(path)
         
         if df_initialized == False:
@@ -341,9 +341,9 @@ def T5Trainer( args):
     console.log(f"""[Model]: Loading {args.model}...\n""")
     console.log(f"[Data]: Reading data...\n")
         
-    # exp_trn_list = [1,2,3,4,5,6,7,8]; exp_val_list = [9]; exp_test_list = [11, 12, 13]
-    # imp_trn_list = [14,15,16,17,18,19, 20]; imp_val_list =[21]; imp_test_list = [28, 29, 30, 31]
-    # ben_trn_list = [33, 34, 35, 36, 37, 38, 39]; ben_val_list =  [40]; ben_test_list= [43]
+    exp_trn_list = [1,2,3,4,5,6,7,8]; exp_val_list = [9]; exp_test_list = [11, 12, 13]
+    imp_trn_list = [14,15,16,17,18,19, 20]; imp_val_list =[21]; imp_test_list = [28, 29, 30, 31]
+    ben_trn_list = [33, 34, 35, 36, 37, 38, 39]; ben_val_list =  [40]; ben_test_list= [43]
 
     # # train_df = get_df( exp_trn_list + imp_trn_list + ben_trn_list )
     # # eval_df = get_df( exp_val_list + imp_val_list + ben_val_list )
@@ -383,36 +383,36 @@ def T5Trainer( args):
         
         path = './DatasetA-Regular/DatasetA-Regular.xlsx'
         if execution_mode in ['test_QASummaryToQuestionsGeneration']:
-            # test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
-            test_df = pd.read_excel(path)
+            test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
+            # test_df = pd.read_excel(path)
 
         if execution_mode in ['test_QASummaryToQApairsgeneration']:
-            # test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
-            test_df = pd.read_excel(path)
+            test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
+            # test_df = pd.read_excel(path)
 
         if execution_mode in ['test_QASummaryGeneration']:
-            # test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
-            test_df = pd.read_excel(path)
+            test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
+            # test_df = pd.read_excel(path)
 
         if execution_mode in ['testGDescGeneration']:
-            # test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
-            test_df = pd.read_excel(path)
+            test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
+            # test_df = pd.read_excel(path)
             
         if execution_mode in ['testContextGeneration', 'testGDescContextGeneration']:
-            # test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
-            test_df = pd.read_excel(path)
+            test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
+            # test_df = pd.read_excel(path)
 
         if execution_mode in ['testGDescAllQAPairs', 'testContextAllQAPairs', 'testGDescContextAllQAPairs']:
-            # test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
-            test_df = pd.read_excel(path)
+            test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
+            # test_df = pd.read_excel(path)
         
         if execution_mode in ['testContext2CLS', 'testGDescContext2CLS']:
-            # test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
-            test_df = pd.read_excel(path)
+            test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
+            # test_df = pd.read_excel(path)
 
         if execution_mode in ['testAllQueryGen']:
-            # test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
-            test_df = pd.read_excel(path)
+            test_df = get_df(exp_test_list + imp_test_list + ben_test_list)
+            # test_df = pd.read_excel(path)
 
         # Independent of excel sheet.
         if 'testGDescAllQueryGen' in execution_mode:

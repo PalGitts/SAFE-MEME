@@ -9,8 +9,8 @@ import random
 from transformers import AutoTokenizer, DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer, T5ForConditionalGeneration
 from model import T5ForMultimodalGeneration
 from utils_dataTrainUnitModels import img_shape, CustomDatasetImg
-from utils_prompt import *
-from utils_evaluate import get_scores
+# from utils_prompt import *
+# from utils_evaluate import get_scores
 from rich.table import Column, Table
 from rich import box
 from rich.console import Console
@@ -131,7 +131,7 @@ def get_df(id_list):
     df_initialized = False
     for idx_dataset in id_list:
 
-        path = '' # Please path to DatasetA-Regular.xlsx, *** ATTENTION ***
+        path = f'/home2/palash/p0_ImplicitHateDetection/EMNLP_2024/usable_datasets/RMMHS_F/RMMHS_{idx_dataset}.xlsx' # Please path to DatasetA-Regular.xlsx, *** ATTENTION ***
         temp_df = pd.read_excel(path)
         
         if df_initialized == False:
@@ -301,9 +301,9 @@ def T5Trainer(args):
     console.log(f"""[Model]: Loading {args.model}...\n""")
     console.log(f"[Data]: Reading data...\n")
 
-    # exp_trn_list = [1,2,3,4,5,6,7,8]; exp_val_list = [9]; exp_test_list = [11, 12, 13]
-    # imp_trn_list = [14,15,16,17,18,19, 20]; imp_val_list =[21]; imp_test_list = [28, 29, 30, 31]
-    # ben_trn_list = [33, 34, 35, 36, 37, 38, 39]; ben_val_list =  [40]; ben_test_list= [43]
+    exp_trn_list = [1,2,3,4,5,6,7,8]; exp_val_list = [9]; exp_test_list = [11, 12, 13]
+    imp_trn_list = [14,15,16,17,18,19, 20]; imp_val_list =[21]; imp_test_list = [28, 29, 30, 31]
+    ben_trn_list = [33, 34, 35, 36, 37, 38, 39]; ben_val_list =  [40]; ben_test_list= [43]
     
     execution_mode = args.execution_mode.strip()
     print(f'*****   execution_mode: {execution_mode}')
@@ -365,14 +365,14 @@ def T5Trainer(args):
                 print(f'{name}: {param.requires_grad}')
 
         #
-        train_path = f'./DatasetA-Regular/DatasetA-Regular_train.xlsx'
-        val_path = f'./DatasetA-Regular/DatasetA-Regular_validation.xlsx'
+        # train_path = f'./DatasetA-Regular/DatasetA-Regular_train.xlsx'
+        # val_path = f'./DatasetA-Regular/DatasetA-Regular_validation.xlsx'
         
-        train_df = pd.read_excel(train_path)
-        eval_df = pd.read_excel(val_path)
+        # train_df = pd.read_excel(train_path)
+        # eval_df = pd.read_excel(val_path)
 
-        # train_df = get_df( exp_trn_list + imp_trn_list + ben_trn_list )
-        # eval_df = get_df( exp_val_list + imp_val_list + ben_val_list )
+        train_df = get_df( exp_trn_list + imp_trn_list + ben_trn_list )
+        eval_df = get_df( exp_val_list + imp_val_list + ben_val_list )
         
         if execution_mode in [
             'train_QASummaryGeneration', 
@@ -387,20 +387,20 @@ def T5Trainer(args):
             
         
         if execution_mode in [ 'trainGDescAllQueryGen_1Q1A', 'trainGDescContextAllQueryGen_1Q1A', 'trainAllQueryGen_1Q1A']:
-            train_df = pd.read_excel(train_path)
+            train_df = get_df( exp_trn_list + imp_trn_list + ben_trn_list )
             train_df = reform_df(train_df)
             
         if execution_mode in ['train_QASummaryQuestionsTo1Q1A']:
-            train_df = pd.read_excel(train_path)
+            train_df = get_df( exp_trn_list + imp_trn_list + ben_trn_list )
             train_df = reform_df_2(train_df)
             
 
         if execution_mode in ['trainContextBasedAllQueryGen']:
-            train_df = pd.read_excel(train_path)
+            train_df = get_df( exp_trn_list + imp_trn_list + ben_trn_list )
             train_df = reform_df_contextBasedQuestionGeneration(train_df)
 
         if execution_mode in ['trainContextBasedAnswerGen_1Q1A']:
-            train_df = pd.read_excel(train_path)
+            train_df = get_df( exp_trn_list + imp_trn_list + ben_trn_list )
             train_df = reform_df_contextBasedAnswerGeneration_1Q1A(train_df)
 
         train_set = CustomDatasetImg(
@@ -418,20 +418,20 @@ def T5Trainer(args):
         print(f'Training set is created.')
         
         if execution_mode in ['trainGDescAllQueryGen_1Q1A', 'trainGDescContextAllQueryGen_1Q1A', 'trainAllQueryGen_1Q1A']:
-            eval_df = pd.read_excel(val_path)
+            eval_df = get_df( exp_val_list + imp_val_list + ben_val_list )
             eval_df = reform_df( eval_df)
             
 
         if execution_mode in ['train_QASummaryQuestionsTo1Q1A']:
-            eval_df  = pd.read_excel(val_path)
+            eval_df = get_df( exp_val_list + imp_val_list + ben_val_list )
             eval_df = reform_df_2(eval_df)
 
         if execution_mode in ['trainContextBasedAllQueryGen']:
-            eval_df  = pd.read_excel(val_path)
+            eval_df = get_df( exp_val_list + imp_val_list + ben_val_list )
             eval_df = reform_df_contextBasedQuestionGeneration(eval_df)
 
         if execution_mode in ['trainContextBasedAnswerGen_1Q1A']:
-            eval_df  = pd.read_excel(val_path)
+            eval_df = get_df( exp_val_list + imp_val_list + ben_val_list )
             eval_df = reform_df_contextBasedAnswerGeneration_1Q1A(eval_df)
 
         eval_set = CustomDatasetImg(

@@ -9,8 +9,8 @@ import random
 from transformers import AutoTokenizer, DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer, T5ForConditionalGeneration
 from model import T5ForMultimodalGeneration
 from utils_dataTestUnitModels_confounder import img_shape, CustomDatasetImg
-from utils_prompt import *
-from utils_evaluate import get_scores
+# from utils_prompt import *
+# from utils_evaluate import get_scores
 from rich.table import Column, Table
 from rich import box
 from rich.console import Console
@@ -116,7 +116,7 @@ def get_df(id_list):
     df_initialized = False
     for idx_dataset in id_list:
 
-        path = '' 
+        path = f''
         temp_df = pd.read_excel(path)
         
         if df_initialized == False:
@@ -345,9 +345,9 @@ def T5Trainer( args):
         #
         # if args.dataset_name in ['confounder', 'CONFOUNDER']:
 
-        path_confounder = './DatasetB-Confounder/DatasetB-Confounder.xlsx'
+        path_confounder = f'/home2/palash/p0_ImplicitHateDetection/EMNLP_2024/usable_datasets/confounder_memes/TrickyConfounder.xlsx'
         test_df = pd.read_excel(path_confounder)
-    
+        
 
         # if execution_mode in ['testGDescGeneration']:
         #     test_df = get_df(exp_test_list + imp_test_list + ben_test_list)

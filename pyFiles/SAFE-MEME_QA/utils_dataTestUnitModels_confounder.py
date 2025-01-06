@@ -5,7 +5,7 @@ import os
 import json
 import numpy as np
 import torch
-from utils_prompt import *
+# from utils_prompt import *
 from extract_features import *
 
 img_shape = {
